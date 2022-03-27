@@ -131,5 +131,8 @@ u.password='12345678'
 u.password_confirmation='12345678'
 u.save!
 ```
+8. 相关链接
+- gitlab的中文社区，包括汉化包：https://gitlab.com/xhang/gitlab
+- gitlab官方网站以及包：https://packages.gitlab.com/gitlab
 
 [1] Kiteatic下载地址: https://download.docker.com/kitematic/Kitematic-Mac.zip
