@@ -136,3 +136,64 @@ u.save!
 - gitlab官方网站以及包：https://packages.gitlab.com/gitlab
 
 [1] Kiteatic下载地址: https://download.docker.com/kitematic/Kitematic-Mac.zip
+
+
+
+## 找回Root密码
+
+  官方文档说明：https://docs.gitlab.com/ee/security/reset_user_password.html
+
+ 1.重置root密码之前，需先使用root用户登录到gitlab所在服务器。并且进入gitlab容器中，使用以下命令启动Ruby on Rails控制台。
+
+```
+  gitlab-rails console -e production
+```
+
+ 2.等待控制台加载完毕，有多种找到用户的方法，您可以搜索电子邮件或用户名。
+
+```
+  user = User.where(id: 1).first
+```
+
+ 或者
+
+```
+  user = User.find_by(email: 'admin@example.com')
+```
+
+  3.现在更改密码。
+
+```
+  user.password = '新密码'
+  user.password_confirmation = '新密码'
+```
+
+ 4.注意，必须同时更改密码和password_confirmation才能使其正常工作，最后别忘了保存(user.save)更改。
+
+```
+[root@k8s-node2 ~]# docker ps      // 查看所有运行中的容器
+CONTAINER ID   IMAGE               COMMAND                  CREATED              STATUS                         PORTS          NAMES
+971e942b7a70   gitlab/gitlab-ce    "/assets/wrapper"        About a minute ago   Up About a minute (health: starting)   0.0.0.0:80->80/tcp, 0.0.0.0:443->443/tcp, 0.0.0.0:222->22/tcp   gitlab                                                                                           
+
+[root@k8s-node2 ~]# docker exec -it gitlab /bin/bash    // 进入gitlab容器中
+root@971e942b7a70:/# gitlab-rails console -e production
+--------------------------------------------------------------------------------
+ Ruby:         ruby 2.7.4p191 (2021-07-07 revision a21a3b7d23) [x86_64-linux]
+ GitLab:       14.3.0 (ceec8accb09) FOSS
+ GitLab Shell: 13.21.0
+
+ PostgreSQL:   12.7
+--------------------------------------------------------------------------------
+Loading production environment (Rails 6.1.3.2)
+irb(main):001:0> user = User.where(id: 1).first
+=> #<User id:1 @root>
+irb(main):002:0> user.password = 'admin1234'
+=> "admin1234"
+irb(main):004:0> user.password_confirmation = 'admin1234'
+=> "admin1234"
+irb(main):005:0> user.save
+Enqueued ActionMailer::MailDeliveryJob (Job ID: 191a2ed7-0caa-4122-bd06-19c32bffc50c) to Sidekiq(mailers) with arguments: "DeviseMailer", "password_change", "deliver_now", {:args=>[#<GlobalID:0x00007f72f7503158 @uri=#<URI::GID gid://gitlab/User/1>>]}
+=> true
+```
+
+至此，管理员root用户密码重置完毕，重置后的密码为admin1234。
